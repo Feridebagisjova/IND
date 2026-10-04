@@ -14,6 +14,7 @@ type IndHeaderProps = {
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/registratie", label: "Productie registratie" },
+  { href: "/registratie/overzicht", label: "Mijn registraties" },
   { href: "/admin/login", label: "Admin portaal" },
   { href: "https://ind.nl/nl/contact", label: "Service & Contact", external: true },
 ];

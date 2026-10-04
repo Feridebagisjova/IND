@@ -2,10 +2,13 @@ import { prisma } from "@/lib/prisma";
 import {
   aggregateMetrics,
   calculateMetrics,
+  getDossierNormMetrics,
+  getPeriodDossierNorm,
   getPeriodRange,
   getRealizationColor,
   startOfDay,
   toDateKey,
+  WEEKLY_DOSSIER_NORM,
 } from "@/lib/metrics";
 
 export type Period = "today" | "week" | "month" | "year";
@@ -23,9 +26,10 @@ export async function getDashboardData(params: {
   employeeId?: string;
   teamId?: string;
 }) {
-  const period = params.period ?? "month";
+  const period = params.period ?? "week";
   const { start, end } = getPeriodRange(period);
   const settings = await getSettings();
+  const dossierNormPerEmployee = getPeriodDossierNorm(start, end);
 
   const employees = await prisma.employee.findMany({
     where: {
@@ -62,11 +66,7 @@ export async function getDashboardData(params: {
       employee.normProfile,
     );
 
-    const previousPeriodStart = new Date(start);
-    const previousPeriodEnd = new Date(end);
-    const spanDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-    previousPeriodStart.setDate(previousPeriodStart.getDate() - spanDays);
-    previousPeriodEnd.setDate(previousPeriodEnd.getDate() - spanDays);
+    const dossierMetrics = getDossierNormMetrics(metrics.totalProduction, dossierNormPerEmployee);
 
     return {
       id: employee.id,
@@ -74,12 +74,20 @@ export async function getDashboardData(params: {
       team: employee.team?.name ?? "—",
       hoursPerDay: employee.hoursPerDay,
       ...metrics,
+      dossierNorm: dossierMetrics.periodNorm,
+      dossierRealization: dossierMetrics.realization,
+      dossierDeviation: dossierMetrics.deviation,
+      dossierRealizationColor: getRealizationColor(
+        dossierMetrics.realization,
+        settings.thresholdGreen,
+        settings.thresholdOrange,
+      ),
       realizationColor: getRealizationColor(
         metrics.realization,
         settings.thresholdGreen,
         settings.thresholdOrange,
       ),
-      trend: metrics.realization >= 100 ? "↑" : metrics.realization >= 90 ? "→" : "↓",
+      trend: dossierMetrics.realization >= 100 ? "↑" : dossierMetrics.realization >= 90 ? "→" : "↓",
     };
   });
 
@@ -98,15 +106,27 @@ export async function getDashboardData(params: {
       ? (totals.totalProduction / totals.totalCorrectedNorm) * 100
       : 0;
 
+  const teamDossierNorm = dossierNormPerEmployee * rows.length;
+  const teamDossierMetrics = getDossierNormMetrics(totals.totalProduction, teamDossierNorm);
+  const averageDossierRealization =
+    rows.length > 0 ? rows.reduce((sum, row) => sum + row.dossierRealization, 0) / rows.length : 0;
+
   return {
     period,
     start,
     end,
     settings,
     rows,
+    dossierNormPerEmployee,
+    weeklyDossierNorm: WEEKLY_DOSSIER_NORM,
     totals: {
       ...totals,
       realization,
+      dossierNorm: teamDossierNorm,
+      dossierRealization: teamDossierMetrics.realization,
+      dossierDeviation: teamDossierMetrics.deviation,
+      averageDossierRealization,
+      averageDossierDeviation: averageDossierRealization - 100,
     },
   };
 }

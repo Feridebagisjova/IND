@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { KpiCard, PeriodFilters, RealizationBadge } from "@/components/AdminUi";
 import { getDashboardData, getFilterOptions, type Period } from "@/lib/admin-data";
-import { formatNumber } from "@/lib/metrics";
+import { formatDeviation, formatNumber } from "@/lib/metrics";
 
 export default async function AdminDashboardPage({
   searchParams,
@@ -18,11 +18,19 @@ export default async function AdminDashboardPage({
     getFilterOptions(),
   ]);
 
+  const periodNormLabel =
+    data.period === "week"
+      ? `${formatNumber(data.weeklyDossierNorm, 0)} dossiers/week`
+      : `${formatNumber(data.dossierNormPerEmployee, 1)} dossiers (${data.weeklyDossierNorm}/week)`;
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="ind-page-title">Productie Dashboard</h2>
-        <p className="muted mt-1">Analyseer normen, gecorrigeerde normen en realisatie.</p>
+        <p className="muted mt-1">
+          Norm per medewerker: <strong>{data.weeklyDossierNorm} dossiers per week</strong>. Realisatie en afwijking
+          worden berekend t.o.v. deze norm voor de geselecteerde periode.
+        </p>
       </div>
 
       <PeriodFilters
@@ -33,11 +41,34 @@ export default async function AdminDashboardPage({
         teams={filters.teams}
       />
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Totale productie" value={formatNumber(data.totals.totalProduction, 0)} />
-        <KpiCard label="Gecorrigeerde norm" value={formatNumber(data.totals.totalCorrectedNorm, 1)} />
-        <KpiCard label="Realisatie" value={`${Math.round(data.totals.realization)}%`} />
-        <KpiCard label="Productieve uren" value={`${formatNumber(data.totals.totalAvailableHours, 0)} uur`} />
+        <KpiCard label="Norm per medewerker" value={periodNormLabel} />
+        <KpiCard
+          label="Team realisatie (dossiers)"
+          value={`${Math.round(data.totals.dossierRealization)}%`}
+        />
+        <KpiCard
+          label="Gemiddelde realisatie medewerkers"
+          value={`${Math.round(data.totals.averageDossierRealization)}%`}
+        />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="ind-info-box">
+          <p className="text-sm">
+            <strong>Team totaal:</strong> {formatNumber(data.totals.totalProduction, 0)} dossiers behaald van{" "}
+            {formatNumber(data.totals.dossierNorm, 1)} verwacht ({formatNumber(data.totals.dossierRealization, 0)}%
+            realisatie, afwijking {formatDeviation(data.totals.dossierDeviation)}).
+          </p>
+        </div>
+        <div className="ind-info-box">
+          <p className="text-sm">
+            <strong>Gemiddelde medewerkers:</strong>{" "}
+            {formatNumber(data.totals.averageDossierRealization, 0)}% realisatie, afwijking{" "}
+            {formatDeviation(data.totals.averageDossierDeviation)} t.o.v. de norm.
+          </p>
+        </div>
       </div>
 
       <div className="card table-wrap">
@@ -46,11 +77,10 @@ export default async function AdminDashboardPage({
             <tr>
               <th>Medewerker</th>
               <th>Team</th>
-              <th>Productieve uren</th>
-              <th>Andere werkzaamheden</th>
-              <th>Gecorrigeerde norm</th>
-              <th>Productie</th>
+              <th>Norm dossiers</th>
+              <th>Behaald</th>
               <th>Realisatie</th>
+              <th>Afwijking t.o.v. norm</th>
               <th>Trend</th>
             </tr>
           </thead>
@@ -63,12 +93,15 @@ export default async function AdminDashboardPage({
                   </Link>
                 </td>
                 <td>{row.team}</td>
-                <td>{formatNumber(row.totalAvailableHours, 0)}</td>
-                <td>{formatNumber(row.totalNonProductiveHours, 1)}</td>
-                <td>{formatNumber(row.totalCorrectedNorm, 1)}</td>
+                <td>{formatNumber(row.dossierNorm, 1)}</td>
                 <td>{formatNumber(row.totalProduction, 0)}</td>
                 <td>
-                  <RealizationBadge value={row.realization} color={row.realizationColor} />
+                  <RealizationBadge value={row.dossierRealization} color={row.dossierRealizationColor} />
+                </td>
+                <td>
+                  <span className={`badge badge-${row.dossierRealizationColor}`}>
+                    {formatDeviation(row.dossierDeviation)}
+                  </span>
                 </td>
                 <td>{row.trend}</td>
               </tr>

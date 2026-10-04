@@ -45,13 +45,15 @@ function toActivityRows(
 export function RegistrationForm({
   employee,
   categories,
-  defaultDate,
+  initialDate,
+  today,
 }: {
   employee: { id: string; name: string };
   categories: CategoryOption[];
-  defaultDate: string;
+  initialDate: string;
+  today: string;
 }) {
-  const [selectedDate, setSelectedDate] = useState(defaultDate);
+  const [selectedDate, setSelectedDate] = useState(initialDate);
   const [dossiers, setDossiers] = useState<DossierRow[]>([]);
   const [comment, setComment] = useState("");
   const [activities, setActivities] = useState<ActivityRow[]>([]);
@@ -64,7 +66,7 @@ export function RegistrationForm({
     return format(parseISO(selectedDate), "d MMMM yyyy", { locale: nl });
   }, [selectedDate]);
 
-  const isToday = selectedDate === defaultDate;
+  const isToday = selectedDate === today;
 
   const loadRegistration = useCallback(async (date: string) => {
     setLoadingRegistration(true);
@@ -101,6 +103,10 @@ export function RegistrationForm({
       setLoadingRegistration(false);
     }
   }, []);
+
+  useEffect(() => {
+    setSelectedDate(initialDate);
+  }, [initialDate]);
 
   useEffect(() => {
     loadRegistration(selectedDate);
@@ -205,7 +211,7 @@ export function RegistrationForm({
             className="input max-w-xs"
             type="date"
             value={selectedDate}
-            max={defaultDate}
+            max={today}
             onChange={(event) => setSelectedDate(event.target.value)}
             disabled={loadingRegistration || status === "loading"}
           />

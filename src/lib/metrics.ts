@@ -60,6 +60,47 @@ export function formatNumber(value: number, digits = 1) {
   });
 }
 
+export const WEEKLY_DOSSIER_NORM = 6;
+
+export function countWorkdaysInRange(start: Date, end: Date) {
+  let count = 0;
+  const cursor = startOfDay(start);
+  const endDay = startOfDay(end);
+
+  while (cursor <= endDay) {
+    const day = cursor.getDay();
+    if (day >= 1 && day <= 5) {
+      count += 1;
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return count;
+}
+
+export function getPeriodDossierNorm(start: Date, end: Date) {
+  const workdays = countWorkdaysInRange(start, end);
+  return (WEEKLY_DOSSIER_NORM / 5) * workdays;
+}
+
+export function getDossierNormMetrics(totalProduction: number, periodNorm: number) {
+  const realization = periodNorm > 0 ? (totalProduction / periodNorm) * 100 : totalProduction > 0 ? 100 : 0;
+
+  return {
+    periodNorm,
+    realization,
+    deviation: realization - 100,
+  };
+}
+
+export function formatDeviation(value: number) {
+  const rounded = Math.round(value);
+  if (rounded > 0) {
+    return `+${rounded}%`;
+  }
+  return `${rounded}%`;
+}
+
 export function startOfDay(date: Date) {
   const copy = new Date(date);
   copy.setHours(0, 0, 0, 0);

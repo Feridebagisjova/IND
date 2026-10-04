@@ -1,15 +1,22 @@
 import { redirect } from "next/navigation";
+import { EmployeeRegistratieNav } from "@/components/EmployeeRegistratieNav";
 import { IndShell } from "@/components/IndShell";
 import { RegistrationForm } from "@/components/RegistrationForm";
 import { getEmployeeSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { toInputDateValue } from "@/lib/metrics";
+import { parseInputDate, toInputDateValue } from "@/lib/metrics";
 
-export default async function RegistratiePage() {
+export default async function RegistratiePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
   const session = await getEmployeeSession();
   if (!session) {
     redirect("/login");
   }
+
+  const query = await searchParams;
 
   const [employee, categories] = await Promise.all([
     prisma.employee.findFirst({
@@ -27,6 +34,7 @@ export default async function RegistratiePage() {
   }
 
   const today = toInputDateValue(new Date());
+  const initialDate = parseInputDate(query.date) ? toInputDateValue(parseInputDate(query.date)!) : today;
 
   return (
     <IndShell
@@ -40,13 +48,16 @@ export default async function RegistratiePage() {
       <section className="ind-content-section">
         <div className="ind-container">
           <div className="ind-content-panel">
+            <EmployeeRegistratieNav active="form" />
+
             <div className="mb-6 border-b border-[var(--border)] pb-4">
               <h2 className="ind-page-title">Dagelijkse productie registreren</h2>
               <p className="mt-1 text-sm text-[var(--muted)]">
-                Kies een datum om eerdere invoer te bekijken of uw registratie van vandaag door te geven.
+                Kies een datum om eerdere invoer te bekijken of uw registratie van vandaag door te geven. Bekijk al uw
+                registraties via <strong>Mijn registraties</strong> hierboven.
               </p>
             </div>
-            <RegistrationForm employee={employee} categories={categories} defaultDate={today} />
+            <RegistrationForm employee={employee} categories={categories} initialDate={initialDate} today={today} />
           </div>
         </div>
       </section>
