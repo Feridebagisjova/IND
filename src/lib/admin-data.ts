@@ -68,6 +68,25 @@ export async function getDashboardData(params: {
 
     const dossierMetrics = getDossierNormMetrics(metrics.totalProduction, dossierNormPerEmployee);
 
+    const dossierEntries = employee.registrations.flatMap((registration) =>
+      registration.dossiers.map((dossier) => ({
+        date: registration.date,
+        title: dossier.title,
+        hours: dossier.hours,
+      })),
+    );
+
+    const activityEntries = employee.registrations.flatMap((registration) =>
+      registration.activities.map((activity) => ({
+        date: registration.date,
+        name: activity.category.name,
+        hours: activity.hours,
+      })),
+    );
+
+    dossierEntries.sort((a, b) => b.date.getTime() - a.date.getTime());
+    activityEntries.sort((a, b) => b.date.getTime() - a.date.getTime());
+
     return {
       id: employee.id,
       name: employee.name,
@@ -77,6 +96,8 @@ export async function getDashboardData(params: {
       dossierNorm: dossierMetrics.periodNorm,
       dossierRealization: dossierMetrics.realization,
       dossierDeviation: dossierMetrics.deviation,
+      dossierEntries,
+      activityEntries,
       dossierRealizationColor: getRealizationColor(
         dossierMetrics.realization,
         settings.thresholdGreen,

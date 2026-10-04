@@ -1,7 +1,31 @@
-import Link from "next/link";
-import { KpiCard, PeriodFilters, RealizationBadge } from "@/components/AdminUi";
+import { AdminDashboardCharts, AdminEmployeeTable, type DashboardRow } from "@/components/AdminDashboardVisuals";
+import { KpiCard, PeriodFilters } from "@/components/AdminUi";
 import { getDashboardData, getFilterOptions, type Period } from "@/lib/admin-data";
 import { formatDeviation, formatNumber } from "@/lib/metrics";
+
+function serializeRows(rows: Awaited<ReturnType<typeof getDashboardData>>["rows"]): DashboardRow[] {
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    team: row.team,
+    dossierNorm: row.dossierNorm,
+    totalProduction: row.totalProduction,
+    dossierRealization: row.dossierRealization,
+    dossierDeviation: row.dossierDeviation,
+    dossierRealizationColor: row.dossierRealizationColor,
+    trend: row.trend,
+    dossierEntries: row.dossierEntries.map((entry) => ({
+      date: entry.date.toISOString(),
+      title: entry.title,
+      hours: entry.hours,
+    })),
+    activityEntries: row.activityEntries.map((entry) => ({
+      date: entry.date.toISOString(),
+      name: entry.name,
+      hours: entry.hours,
+    })),
+  }));
+}
 
 export default async function AdminDashboardPage({
   searchParams,
@@ -17,6 +41,8 @@ export default async function AdminDashboardPage({
     }),
     getFilterOptions(),
   ]);
+
+  const rows = serializeRows(data.rows);
 
   const periodNormLabel =
     data.period === "week"
@@ -44,10 +70,7 @@ export default async function AdminDashboardPage({
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Totale productie" value={formatNumber(data.totals.totalProduction, 0)} />
         <KpiCard label="Norm per medewerker" value={periodNormLabel} />
-        <KpiCard
-          label="Team realisatie (dossiers)"
-          value={`${Math.round(data.totals.dossierRealization)}%`}
-        />
+        <KpiCard label="Team realisatie (dossiers)" value={`${Math.round(data.totals.dossierRealization)}%`} />
         <KpiCard
           label="Gemiddelde realisatie medewerkers"
           value={`${Math.round(data.totals.averageDossierRealization)}%`}
@@ -64,50 +87,20 @@ export default async function AdminDashboardPage({
         </div>
         <div className="ind-info-box">
           <p className="text-sm">
-            <strong>Gemiddelde medewerkers:</strong>{" "}
-            {formatNumber(data.totals.averageDossierRealization, 0)}% realisatie, afwijking{" "}
-            {formatDeviation(data.totals.averageDossierDeviation)} t.o.v. de norm.
+            <strong>Gemiddelde medewerkers:</strong> {formatNumber(data.totals.averageDossierRealization, 0)}%
+            realisatie, afwijking {formatDeviation(data.totals.averageDossierDeviation)} t.o.v. de norm.
           </p>
         </div>
       </div>
 
-      <div className="card table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Medewerker</th>
-              <th>Team</th>
-              <th>Norm dossiers</th>
-              <th>Behaald</th>
-              <th>Realisatie</th>
-              <th>Afwijking t.o.v. norm</th>
-              <th>Trend</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <Link href={`/admin/employees/${row.id}`} className="font-medium text-[var(--primary)]">
-                    {row.name}
-                  </Link>
-                </td>
-                <td>{row.team}</td>
-                <td>{formatNumber(row.dossierNorm, 1)}</td>
-                <td>{formatNumber(row.totalProduction, 0)}</td>
-                <td>
-                  <RealizationBadge value={row.dossierRealization} color={row.dossierRealizationColor} />
-                </td>
-                <td>
-                  <span className={`badge badge-${row.dossierRealizationColor}`}>
-                    {formatDeviation(row.dossierDeviation)}
-                  </span>
-                </td>
-                <td>{row.trend}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <AdminDashboardCharts rows={rows} />
+
+      <div>
+        <h3 className="mb-3 text-lg font-semibold text-[var(--primary)]">Medewerkers</h3>
+        <p className="mb-4 text-sm text-[var(--muted)]">
+          Klik op een regel om dossiers en overige werkzaamheden met titel en uren uit te klappen.
+        </p>
+        <AdminEmployeeTable rows={rows} />
       </div>
     </div>
   );
