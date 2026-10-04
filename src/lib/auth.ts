@@ -1,7 +1,8 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const cookieName = "ind_admin_session";
+const adminCookieName = "ind_admin_session";
+const employeeCookieName = "ind_employee_session";
 
 function getSecret() {
   const secret = process.env.JWT_SECRET;
@@ -11,15 +12,9 @@ function getSecret() {
   return new TextEncoder().encode(secret);
 }
 
-export async function createAdminSession(adminId: string) {
-  const token = await new SignJWT({ adminId })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("8h")
-    .sign(getSecret());
-
+async function setSessionCookie(name: string, token: string) {
   const cookieStore = await cookies();
-  cookieStore.set(cookieName, token, {
+  cookieStore.set(name, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -27,22 +22,68 @@ export async function createAdminSession(adminId: string) {
   });
 }
 
-export async function clearAdminSession() {
+async function clearSessionCookie(name: string) {
   const cookieStore = await cookies();
-  cookieStore.delete(cookieName);
+  cookieStore.delete(name);
 }
 
-export async function getAdminSession() {
+async function readSessionCookie(name: string, key: string) {
   const cookieStore = await cookies();
-  const token = cookieStore.get(cookieName)?.value;
+  const token = cookieStore.get(name)?.value;
   if (!token) return null;
 
   try {
     const { payload } = await jwtVerify(token, getSecret());
-    return { adminId: payload.adminId as string };
+    return { [key]: payload[key] as string };
   } catch {
     return null;
   }
+}
+
+export async function createAdminSession(adminId: string) {
+  const token = await new SignJWT({ adminId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("8h")
+    .sign(getSecret());
+
+  await setSessionCookie(adminCookieName, token);
+}
+
+export async function clearAdminSession() {
+  await clearSessionCookie(adminCookieName);
+}
+
+export async function getAdminSession() {
+  const session = await readSessionCookie(adminCookieName, "adminId");
+  return session ? { adminId: session.adminId } : null;
+}
+
+export async function createEmployeeSession(employeeId: string) {
+  const token = await new SignJWT({ employeeId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("12h")
+    .sign(getSecret());
+
+  await setSessionCookie(employeeCookieName, token);
+}
+
+export async function clearEmployeeSession() {
+  await clearSessionCookie(employeeCookieName);
+}
+
+export async function getEmployeeSession() {
+  const session = await readSessionCookie(employeeCookieName, "employeeId");
+  return session ? { employeeId: session.employeeId } : null;
+}
+
+export async function requireEmployeeSession() {
+  const session = await getEmployeeSession();
+  if (!session) {
+    throw new Error("UNAUTHORIZED");
+  }
+  return session;
 }
 
 export async function requireAdminSession() {

@@ -64,12 +64,21 @@ model Registration {
   employee        Employee               @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   date            DateTime
   productionUnits Float
-  productionHours Float    @default(0)
+  productionHours Float                  @default(0)
   comment         String?
+  dossiers        RegistrationDossier[]
   activities      RegistrationActivity[]
   createdAt       DateTime               @default(now())
 
   @@unique([employeeId, date])
+}
+
+model RegistrationDossier {
+  id             String       @id @default(cuid())
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  title          String
+  hours          Float
 }
 
 model RegistrationActivity {

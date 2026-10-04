@@ -37,11 +37,11 @@ export default function AdminLoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <IndHeader adminHref="/admin/login" adminLabel="Inloggen" />
+      <IndHeader loginHref="/admin/login" loginLabel="Inloggen" />
       <main id="main-content" className="flex flex-1 items-center justify-center px-6 py-10">
-        <div className="card w-full max-w-md p-8">
+        <div className="ind-content-panel w-full max-w-md">
           <Link href="/" className="text-sm text-[var(--muted)] hover:underline">
-            ← Terug naar productie registratie
+            ← Terug naar home
           </Link>
           <h1 className="ind-page-title mt-4">Admin login</h1>
           <p className="mt-2 text-sm text-[var(--muted)]">Log in om het admin portaal te openen.</p>

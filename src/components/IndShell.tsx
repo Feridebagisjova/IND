@@ -1,40 +1,55 @@
 import { ReactNode } from "react";
 import { IndFooter } from "./IndFooter";
 import { IndHeader } from "./IndHeader";
+import { IndHero } from "./IndHero";
+import { IndQuickLinks } from "./IndQuickLinks";
 
 type IndShellProps = {
-  children: ReactNode;
+  children?: ReactNode;
   showAdminLink?: boolean;
-  adminHref?: string;
-  adminLabel?: string;
+  loginHref?: string;
+  loginLabel?: string;
+  showLogout?: boolean;
+  employeeName?: string;
   bannerTitle?: string;
   bannerSubtitle?: string;
+  showQuickLinks?: boolean;
+  heroActions?: ReactNode;
 };
 
 export function IndShell({
   children,
   showAdminLink = true,
-  adminHref = "/admin/login",
-  adminLabel = "Inloggen",
+  loginHref = "/login",
+  loginLabel = "Inloggen",
+  showLogout = false,
+  employeeName,
   bannerTitle,
   bannerSubtitle,
+  showQuickLinks = true,
+  heroActions,
 }: IndShellProps) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <IndHeader showAdminLink={showAdminLink} adminHref={adminHref} adminLabel={adminLabel} />
+      <IndHeader
+        showAdminLink={showAdminLink}
+        loginHref={loginHref}
+        loginLabel={loginLabel}
+        showLogout={showLogout}
+        employeeName={employeeName}
+      />
       {bannerTitle && (
-        <section className="ind-hero">
-          <div className="ind-container py-10 md:py-14">
-            <div className="ind-hero-box max-w-xl">
-              <h1 className="text-3xl font-bold leading-tight md:text-4xl">{bannerTitle}</h1>
-              {bannerSubtitle && <p className="mt-3 text-base opacity-95 md:text-lg">{bannerSubtitle}</p>}
-            </div>
-          </div>
-        </section>
+        <>
+          <IndHero title={bannerTitle} subtitle={bannerSubtitle} actions={heroActions} />
+          {showQuickLinks && <IndQuickLinks />}
+        </>
       )}
-      <main id="main-content" className="flex-1">
-        {children}
-      </main>
+      {children && (
+        <main id="main-content" className="flex-1">
+          {children}
+        </main>
+      )}
+      {!children && <main id="main-content" className="flex-1" />}
       <IndFooter />
     </div>
   );

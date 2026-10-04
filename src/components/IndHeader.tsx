@@ -1,16 +1,29 @@
 import Image from "next/image";
 import Link from "next/link";
+import { IconUser } from "./IndIcons";
+import { LogoutButton } from "./LogoutButton";
 
 type IndHeaderProps = {
   showAdminLink?: boolean;
-  adminHref?: string;
-  adminLabel?: string;
+  loginHref?: string;
+  loginLabel?: string;
+  showLogout?: boolean;
+  employeeName?: string;
 };
+
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/registratie", label: "Productie registratie" },
+  { href: "/admin/login", label: "Admin portaal" },
+  { href: "https://ind.nl/nl/contact", label: "Service & Contact", external: true },
+];
 
 export function IndHeader({
   showAdminLink = true,
-  adminHref = "/admin/login",
-  adminLabel = "Inloggen",
+  loginHref = "/login",
+  loginLabel = "Inloggen",
+  showLogout = false,
+  employeeName,
 }: IndHeaderProps) {
   return (
     <header className="ind-header">
@@ -18,55 +31,62 @@ export function IndHeader({
         Overslaan en naar de inhoud gaan
       </a>
 
-      <div className="ind-header-top">
-        <div className="ind-container flex items-center justify-between gap-4 py-3">
+      <div className="ind-header-meta">
+        <div className="ind-container flex items-center justify-end py-2">
+          <p className="ind-language">
+            Taal: <strong>Nederlands</strong>
+            <span className="ind-language-sep">|</span>
+            <Link href="https://ind.nl/en" className="ind-language-link">
+              English
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      <div className="ind-header-brand">
+        <div className="ind-container flex justify-center py-5 md:py-6">
           <Link href="/" className="ind-logo-link" aria-label="Home">
             <Image
               src="/ind-logo.png"
               alt="Immigratie- en Naturalisatiedienst"
-              width={320}
-              height={72}
+              width={420}
+              height={96}
               priority
-              className="h-14 w-auto md:h-16"
+              className="ind-logo-image"
             />
           </Link>
-          <div className="hidden items-center gap-4 text-sm text-[var(--foreground)] sm:flex">
-            <span>
-              Taal: <strong>Nederlands</strong>
-            </span>
-            {showAdminLink && (
-              <Link href={adminHref} className="ind-header-action">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path
-                    d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z"
-                    fill="currentColor"
-                  />
-                </svg>
-                {adminLabel}
-              </Link>
-            )}
-          </div>
         </div>
       </div>
 
       <nav className="ind-nav" aria-label="Hoofdnavigatie">
-        <div className="ind-container flex flex-wrap items-center justify-between gap-3 py-3">
-          <ul className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <li>
-              <Link href="/" className="ind-nav-link">
-                Productie registratie
-              </Link>
-            </li>
-            <li>
-              <Link href="/admin" className="ind-nav-link">
-                Admin portaal
-              </Link>
-            </li>
+        <div className="ind-container ind-nav-inner">
+          <ul className="ind-nav-list">
+            {navLinks.map((link) => (
+              <li key={link.href}>
+                {link.external ? (
+                  <a href={link.href} className="ind-nav-link" target="_blank" rel="noopener noreferrer">
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link href={link.href} className="ind-nav-link">
+                    {link.label}
+                  </Link>
+                )}
+              </li>
+            ))}
           </ul>
-          <div className="flex items-center gap-4 sm:hidden">
-            {showAdminLink && (
-              <Link href={adminHref} className="ind-header-action text-sm">
-                {adminLabel}
+
+          <div className="ind-nav-actions">
+            {employeeName && (
+              <span className="ind-header-user hidden text-sm text-white/90 md:inline">
+                Ingelogd als <strong>{employeeName}</strong>
+              </span>
+            )}
+            {showLogout && <LogoutButton />}
+            {showAdminLink && !showLogout && (
+              <Link href={loginHref} className="ind-header-action">
+                <IconUser />
+                <span>{loginLabel}</span>
               </Link>
             )}
           </div>

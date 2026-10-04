@@ -44,6 +44,7 @@ export async function getDashboardData(params: {
           },
         },
         include: {
+          dossiers: true,
           activities: {
             include: { category: true },
           },
@@ -122,6 +123,7 @@ export async function getEmployeeDetail(employeeId: string, period: Period = "mo
       registrations: {
         where: { date: { gte: start, lte: end } },
         include: {
+          dossiers: true,
           activities: {
             include: { category: true },
           },
@@ -166,6 +168,7 @@ export async function getEmployeeDetail(employeeId: string, period: Period = "mo
       productionHours: registration.productionHours,
       correctedNorm: metrics.correctedNorm,
       realization: metrics.realization,
+      dossiers: registration.dossiers,
       activities: registration.activities,
       comment: registration.comment,
     };

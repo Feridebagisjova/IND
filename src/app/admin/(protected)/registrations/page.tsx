@@ -5,6 +5,7 @@ export default async function RegistrationsPage() {
   const registrations = await prisma.registration.findMany({
     include: {
       employee: true,
+      dossiers: true,
       activities: { include: { category: true } },
     },
     orderBy: { date: "desc" },
@@ -24,6 +25,7 @@ export default async function RegistrationsPage() {
               <th>Datum</th>
               <th>Medewerker</th>
               <th>Productie</th>
+              <th>Dossiers</th>
               <th>Dossieruren</th>
               <th>Werkzaamheden</th>
               <th>Opmerking</th>
@@ -35,6 +37,11 @@ export default async function RegistrationsPage() {
                 <td>{format(registration.date, "dd-MM-yyyy")}</td>
                 <td>{registration.employee.name}</td>
                 <td>{registration.productionUnits}</td>
+                <td>
+                  {registration.dossiers.length
+                    ? registration.dossiers.map((dossier) => `${dossier.title} (${dossier.hours}u)`).join(", ")
+                    : "—"}
+                </td>
                 <td>{registration.productionHours > 0 ? `${registration.productionHours}u` : "—"}</td>
                 <td>
                   {registration.activities.length

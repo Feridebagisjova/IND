@@ -116,8 +116,14 @@ async function main() {
     data: {
       employeeId: petra.id,
       date: sampleDates[0],
-      productionUnits: 4,
+      productionUnits: 2,
       productionHours: 6,
+      dossiers: {
+        create: [
+          { title: "Naturalisatieaanvraag de Vries", hours: 3.5 },
+          { title: "Verblijfsvergunning Ahmed", hours: 2.5 },
+        ],
+      },
       activities: { create: [{ categoryId: overleg.id, hours: 1 }] },
     },
   });
@@ -128,6 +134,12 @@ async function main() {
       date: sampleDates[1],
       productionUnits: 2,
       productionHours: 3,
+      dossiers: {
+        create: [
+          { title: "Asielzaak Bakker", hours: 1.5 },
+          { title: "Gezinshereniging Jansen", hours: 1.5 },
+        ],
+      },
       comment: "Training",
       activities: {
         create: [
@@ -142,8 +154,15 @@ async function main() {
     data: {
       employeeId: petra.id,
       date: sampleDates[2],
-      productionUnits: 5,
+      productionUnits: 3,
       productionHours: 7,
+      dossiers: {
+        create: [
+          { title: "EU-vergunning Silva", hours: 2.5 },
+          { title: "Inwilliging asiel Nguyen", hours: 2.5 },
+          { title: "Afwijzing bezwaar Kaya", hours: 2 },
+        ],
+      },
     },
   });
 
@@ -151,8 +170,14 @@ async function main() {
     data: {
       employeeId: petra.id,
       date: sampleDates[3],
-      productionUnits: 3,
+      productionUnits: 2,
       productionHours: 4.5,
+      dossiers: {
+        create: [
+          { title: "Complexe naturalisatie Öztürk", hours: 3 },
+          { title: "Herzieningsverzoek Patel", hours: 1.5 },
+        ],
+      },
       comment: "Complex dossier",
       activities: {
         create: [
@@ -167,8 +192,15 @@ async function main() {
     data: {
       employeeId: jan.id,
       date: sampleDates[3],
-      productionUnits: 6,
+      productionUnits: 3,
       productionHours: 7.5,
+      dossiers: {
+        create: [
+          { title: "Verblijfsvergunning studie Chen", hours: 2.5 },
+          { title: "Regulier verblijf Williams", hours: 2.5 },
+          { title: "Afwijzing asiel Hassan", hours: 2.5 },
+        ],
+      },
     },
   });
 
@@ -178,6 +210,12 @@ async function main() {
       date: sampleDates[3],
       productionUnits: 2,
       productionHours: 3,
+      dossiers: {
+        create: [
+          { title: "Begeleiding nieuw dossier Meijer", hours: 1.5 },
+          { title: "Controle aanvraag Dubois", hours: 1.5 },
+        ],
+      },
       activities: {
         create: [{ categoryId: begeleiding.id, hours: 1.5 }],
       },

@@ -1,37 +1,72 @@
-import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
+import { getEmployeeSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { startOfDay } from "@/lib/metrics";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 
+type DossierInput = {
+  title: string;
+  hours: number;
+};
+
+type ActivityInput = {
+  categoryId: string;
+  hours: number;
+};
+
+function parseDossiers(raw: unknown): DossierInput[] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((item) => ({
+      title: String(item?.title ?? "").trim(),
+      hours: Number(item?.hours ?? 0),
+    }))
+    .filter((item) => item.title && item.hours > 0);
+}
+
+function parseActivities(raw: unknown): ActivityInput[] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((item) => ({
+      categoryId: String(item?.categoryId ?? ""),
+      hours: Number(item?.hours ?? 0),
+    }))
+    .filter((item) => item.categoryId && item.hours > 0);
+}
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const employeeId = String(body.employeeId ?? "");
-    const pinCode = String(body.pinCode ?? "");
-    const productionUnits = Number(body.productionUnits ?? 0);
-    const productionHours = Number(body.productionHours ?? 0);
-    const comment = body.comment ? String(body.comment) : null;
-    const activities = Array.isArray(body.activities) ? body.activities : [];
+    const session = await getEmployeeSession();
+    if (!session) {
+      return NextResponse.json({ error: "U bent niet ingelogd" }, { status: 401 });
+    }
 
-    if (!employeeId || !pinCode) {
-      return NextResponse.json({ error: "Medewerker en code zijn verplicht" }, { status: 400 });
+    const body = await request.json();
+    const dossiers = parseDossiers(body.dossiers);
+    const activities = parseActivities(body.activities);
+    const comment = body.comment ? String(body.comment) : null;
+
+    if (dossiers.length === 0 && activities.length === 0) {
+      return NextResponse.json(
+        { error: "Vul minimaal één dossier of andere werkzaamheid in" },
+        { status: 400 },
+      );
     }
 
     const employee = await prisma.employee.findFirst({
-      where: { id: employeeId, active: true },
+      where: { id: session.employeeId, active: true },
     });
 
     if (!employee) {
       return NextResponse.json({ error: "Medewerker niet gevonden" }, { status: 404 });
     }
 
-    const validPin = await bcrypt.compare(pinCode, employee.pinCode);
-    if (!validPin) {
-      return NextResponse.json({ error: "Onjuiste persoonlijke code" }, { status: 401 });
-    }
-
+    const productionUnits = dossiers.length;
+    const productionHours = dossiers.reduce((sum, dossier) => sum + dossier.hours, 0);
+    const employeeId = employee.id;
     const today = startOfDay(new Date());
 
     await prisma.registration.upsert({
@@ -45,9 +80,16 @@ export async function POST(request: Request) {
         productionUnits,
         productionHours,
         comment,
+        dossiers: {
+          deleteMany: {},
+          create: dossiers.map((dossier) => ({
+            title: dossier.title,
+            hours: dossier.hours,
+          })),
+        },
         activities: {
           deleteMany: {},
-          create: activities.map((activity: { categoryId: string; hours: number }) => ({
+          create: activities.map((activity) => ({
             categoryId: activity.categoryId,
             hours: activity.hours,
           })),
@@ -59,8 +101,14 @@ export async function POST(request: Request) {
         productionUnits,
         productionHours,
         comment,
+        dossiers: {
+          create: dossiers.map((dossier) => ({
+            title: dossier.title,
+            hours: dossier.hours,
+          })),
+        },
         activities: {
-          create: activities.map((activity: { categoryId: string; hours: number }) => ({
+          create: activities.map((activity) => ({
             categoryId: activity.categoryId,
             hours: activity.hours,
           })),

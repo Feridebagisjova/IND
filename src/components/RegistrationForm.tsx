@@ -1,46 +1,49 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 
-type EmployeeOption = { id: string; name: string };
 type CategoryOption = { id: string; name: string };
+
+type DossierRow = {
+  title: string;
+  hours: string;
+};
 
 type ActivityRow = {
   categoryId: string;
   hours: string;
 };
 
-const STORAGE_KEY = "ind_employee_id";
+function parseHours(value: string) {
+  return Number(value.replace(",", ".")) || 0;
+}
 
 export function RegistrationForm({
-  employees,
+  employee,
   categories,
   today,
 }: {
-  employees: EmployeeOption[];
+  employee: { id: string; name: string };
   categories: CategoryOption[];
   today: string;
 }) {
-  const [employeeId, setEmployeeId] = useState("");
-  const [pinCode, setPinCode] = useState("");
-  const [productionUnits, setProductionUnits] = useState(0);
-  const [productionHours, setProductionHours] = useState("");
+  const [dossiers, setDossiers] = useState<DossierRow[]>([]);
   const [comment, setComment] = useState("");
   const [activities, setActivities] = useState<ActivityRow[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
-  const selectedEmployee = useMemo(
-    () => employees.find((employee) => employee.id === employeeId),
-    [employeeId, employees],
-  );
+  function addDossierRow() {
+    setDossiers((rows) => [...rows, { title: "", hours: "1" }]);
+  }
 
-  useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved && employees.some((employee) => employee.id === saved)) {
-      setEmployeeId(saved);
-    }
-  }, [employees]);
+  function updateDossier(index: number, patch: Partial<DossierRow>) {
+    setDossiers((rows) => rows.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)));
+  }
+
+  function removeDossier(index: number) {
+    setDossiers((rows) => rows.filter((_, rowIndex) => rowIndex !== index));
+  }
 
   function addActivityRow() {
     setActivities((rows) => [...rows, { categoryId: categories[0]?.id ?? "", hours: "1" }]);
@@ -59,17 +62,23 @@ export function RegistrationForm({
     setStatus("loading");
     setMessage("");
 
-    const parsedProductionHours = Number(productionHours.replace(",", ".")) || 0;
-    const parsedActivities = activities
-      .filter((activity) => activity.categoryId && Number(activity.hours.replace(",", ".")) > 0)
-      .map((activity) => ({
-        categoryId: activity.categoryId,
-        hours: Number(activity.hours.replace(",", ".")),
+    const parsedDossiers = dossiers
+      .filter((dossier) => dossier.title.trim() && parseHours(dossier.hours) > 0)
+      .map((dossier) => ({
+        title: dossier.title.trim(),
+        hours: parseHours(dossier.hours),
       }));
 
-    if (productionUnits === 0 && parsedProductionHours === 0 && parsedActivities.length === 0) {
+    const parsedActivities = activities
+      .filter((activity) => activity.categoryId && parseHours(activity.hours) > 0)
+      .map((activity) => ({
+        categoryId: activity.categoryId,
+        hours: parseHours(activity.hours),
+      }));
+
+    if (parsedDossiers.length === 0 && parsedActivities.length === 0) {
       setStatus("error");
-      setMessage("Vul minimaal dossiers, dossieruren of andere werkzaamheden in.");
+      setMessage("Vul minimaal één dossier of andere werkzaamheid in.");
       return;
     }
 
@@ -78,10 +87,7 @@ export function RegistrationForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          employeeId,
-          pinCode,
-          productionUnits,
-          productionHours: parsedProductionHours,
+          dossiers: parsedDossiers,
           comment,
           activities: parsedActivities,
         }),
@@ -92,13 +98,10 @@ export function RegistrationForm({
         throw new Error(data.error ?? "Opslaan mislukt");
       }
 
-      window.localStorage.setItem(STORAGE_KEY, employeeId);
       setStatus("success");
       setMessage(data.message);
-      setPinCode("");
       setComment("");
-      setProductionUnits(0);
-      setProductionHours("");
+      setDossiers([]);
       setActivities([]);
     } catch (error) {
       setStatus("error");
@@ -125,100 +128,82 @@ export function RegistrationForm({
     );
   }
 
+  const totalDossierHours = dossiers.reduce((sum, dossier) => sum + parseHours(dossier.hours), 0);
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label className="label" htmlFor="employee">
-            Medewerker
-          </label>
-          <select
-            id="employee"
-            className="input"
-            value={employeeId}
-            onChange={(event) => setEmployeeId(event.target.value)}
-            required
-          >
-            <option value="">Selecteer medewerker</option>
-            {employees.map((employee) => (
-              <option key={employee.id} value={employee.id}>
-                {employee.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="label" htmlFor="pin">
-            Persoonlijke 4-cijfercode
-          </label>
-          <input
-            id="pin"
-            className="input"
-            type="password"
-            inputMode="numeric"
-            pattern="[0-9]{4}"
-            maxLength={4}
-            value={pinCode}
-            onChange={(event) => setPinCode(event.target.value)}
-            placeholder="••••"
-            required
-          />
-        </div>
+      <div className="ind-info-box text-sm">
+        Ingelogd als <strong>{employee.name}</strong>
       </div>
 
-      {selectedEmployee && (
-        <div className="ind-info-box text-sm">
-          Geselecteerd: <strong>{selectedEmployee.name}</strong>
-        </div>
-      )}
-
-      <section className="space-y-4 border border-[var(--border)] p-4 md:p-5">
+      <section className="space-y-4 border border-[var(--border)] bg-[var(--ind-purple-light)] p-4 md:p-5">
         <div>
           <h2 className="ind-section-heading">Dossierafhandeling</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Registreer hoeveel dossiers u heeft afgehandeld en hoeveel uren u daaraan heeft besteed.
+            Voeg per dossier een titel en het aantal bestede uren toe.
           </p>
         </div>
 
-        <div>
-          <label className="label">Aantal afgehandelde dossiers</label>
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              className="btn btn-secondary h-12 w-12 text-xl"
-              onClick={() => setProductionUnits((value) => Math.max(0, value - 1))}
-            >
-              -
-            </button>
-            <div className="min-w-16 text-center text-3xl font-semibold">{productionUnits}</div>
-            <button
-              type="button"
-              className="btn btn-secondary h-12 w-12 text-xl"
-              onClick={() => setProductionUnits((value) => value + 1)}
-            >
-              +
-            </button>
+        {dossiers.length === 0 ? (
+          <p className="text-sm text-[var(--muted)]">Nog geen dossiers toegevoegd.</p>
+        ) : (
+          <div className="space-y-3">
+            {dossiers.map((dossier, index) => (
+              <div
+                key={index}
+                className="grid gap-3 border border-[var(--border)] bg-white p-4 md:grid-cols-[1fr_140px_auto]"
+              >
+                <div>
+                  <label className="label md:sr-only" htmlFor={`dossier-title-${index}`}>
+                    Dossiertitel
+                  </label>
+                  <input
+                    id={`dossier-title-${index}`}
+                    className="input"
+                    value={dossier.title}
+                    onChange={(event) => updateDossier(index, { title: event.target.value })}
+                    placeholder="Bijv. Naturalisatieaanvraag de Vries"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="label md:sr-only" htmlFor={`dossier-hours-${index}`}>
+                    Uren
+                  </label>
+                  <input
+                    id={`dossier-hours-${index}`}
+                    className="input"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={dossier.hours}
+                    onChange={(event) => updateDossier(index, { hours: event.target.value })}
+                    placeholder="Uren"
+                    required
+                  />
+                </div>
+                <button type="button" className="btn btn-secondary" onClick={() => removeDossier(index)}>
+                  Verwijder
+                </button>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
 
-        <div>
-          <label className="label" htmlFor="production-hours">
-            Uren besteed aan dossierafhandeling
-          </label>
-          <input
-            id="production-hours"
-            className="input max-w-xs"
-            type="number"
-            min="0"
-            step="0.5"
-            value={productionHours}
-            onChange={(event) => setProductionHours(event.target.value)}
-            placeholder="Bijv. 6"
-          />
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <button type="button" className="btn btn-secondary" onClick={addDossierRow}>
+            + Dossier toevoegen
+          </button>
+          {dossiers.length > 0 && (
+            <p className="text-sm text-[var(--muted)]">
+              Totaal: <strong>{dossiers.length}</strong> dossier{dossiers.length === 1 ? "" : "s"},{" "}
+              <strong>{totalDossierHours.toLocaleString("nl-NL")}</strong> uur
+            </p>
+          )}
         </div>
       </section>
 
-      <section className="space-y-4 border border-[var(--border)] p-4 md:p-5">
+      <section className="space-y-4 border border-[var(--border)] bg-[var(--ind-purple-light)] p-4 md:p-5">
         <div>
           <h2 className="ind-section-heading">Overige werkzaamheden</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -234,7 +219,7 @@ export function RegistrationForm({
             {activities.map((activity, index) => (
               <div
                 key={index}
-                className="grid gap-3 border border-[var(--border)] p-4 md:grid-cols-[1fr_140px_auto]"
+                className="grid gap-3 border border-[var(--border)] bg-white p-4 md:grid-cols-[1fr_140px_auto]"
               >
                 <div>
                   <label className="label md:sr-only" htmlFor={`activity-category-${index}`}>
