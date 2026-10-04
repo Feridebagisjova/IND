@@ -83,6 +83,7 @@ export default async function EmployeeDetailPage({
             <tr>
               <th>Datum</th>
               <th>Productie</th>
+              <th>Dossieruren</th>
               <th>Gecorrigeerde norm</th>
               <th>Realisatie</th>
               <th>Werkzaamheden</th>
@@ -94,6 +95,7 @@ export default async function EmployeeDetailPage({
               <tr key={row.date.toISOString()}>
                 <td>{format(row.date, "dd-MM-yyyy")}</td>
                 <td>{formatNumber(row.production, 0)}</td>
+                <td>{row.productionHours > 0 ? `${formatNumber(row.productionHours, 1)}u` : "—"}</td>
                 <td>{formatNumber(row.correctedNorm, 1)}</td>
                 <td>{Math.round(row.realization)}%</td>
                 <td>

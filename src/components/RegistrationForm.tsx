@@ -24,8 +24,8 @@ export function RegistrationForm({
   const [employeeId, setEmployeeId] = useState("");
   const [pinCode, setPinCode] = useState("");
   const [productionUnits, setProductionUnits] = useState(0);
+  const [productionHours, setProductionHours] = useState("");
   const [comment, setComment] = useState("");
-  const [showActivities, setShowActivities] = useState(false);
   const [activities, setActivities] = useState<ActivityRow[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -44,7 +44,6 @@ export function RegistrationForm({
 
   function addActivityRow() {
     setActivities((rows) => [...rows, { categoryId: categories[0]?.id ?? "", hours: "1" }]);
-    setShowActivities(true);
   }
 
   function updateActivity(index: number, patch: Partial<ActivityRow>) {
@@ -60,6 +59,20 @@ export function RegistrationForm({
     setStatus("loading");
     setMessage("");
 
+    const parsedProductionHours = Number(productionHours.replace(",", ".")) || 0;
+    const parsedActivities = activities
+      .filter((activity) => activity.categoryId && Number(activity.hours.replace(",", ".")) > 0)
+      .map((activity) => ({
+        categoryId: activity.categoryId,
+        hours: Number(activity.hours.replace(",", ".")),
+      }));
+
+    if (productionUnits === 0 && parsedProductionHours === 0 && parsedActivities.length === 0) {
+      setStatus("error");
+      setMessage("Vul minimaal dossiers, dossieruren of andere werkzaamheden in.");
+      return;
+    }
+
     try {
       const response = await fetch("/api/registrations", {
         method: "POST",
@@ -68,15 +81,9 @@ export function RegistrationForm({
           employeeId,
           pinCode,
           productionUnits,
+          productionHours: parsedProductionHours,
           comment,
-          activities: showActivities
-            ? activities
-                .filter((activity) => activity.categoryId && Number(activity.hours) > 0)
-                .map((activity) => ({
-                  categoryId: activity.categoryId,
-                  hours: Number(activity.hours.replace(",", ".")),
-                }))
-            : [],
+          activities: parsedActivities,
         }),
       });
 
@@ -91,8 +98,8 @@ export function RegistrationForm({
       setPinCode("");
       setComment("");
       setProductionUnits(0);
+      setProductionHours("");
       setActivities([]);
-      setShowActivities(false);
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Opslaan mislukt");
@@ -165,68 +172,114 @@ export function RegistrationForm({
         </div>
       )}
 
-      <div>
-        <label className="label">Hoeveel dossiers heb je vandaag afgehandeld?</label>
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            className="btn btn-secondary h-12 w-12 rounded-full text-xl"
-            onClick={() => setProductionUnits((value) => Math.max(0, value - 1))}
-          >
-            -
-          </button>
-          <div className="min-w-16 text-center text-3xl font-semibold">{productionUnits}</div>
-          <button
-            type="button"
-            className="btn btn-secondary h-12 w-12 rounded-full text-xl"
-            onClick={() => setProductionUnits((value) => value + 1)}
-          >
-            +
-          </button>
+      <section className="space-y-4 border border-[var(--border)] p-4 md:p-5">
+        <div>
+          <h2 className="ind-section-heading">Dossierafhandeling</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Registreer hoeveel dossiers u heeft afgehandeld en hoeveel uren u daaraan heeft besteed.
+          </p>
         </div>
-      </div>
 
-      <div>
-        <p className="label">Heb je vandaag tijd besteed aan andere werkzaamheden?</p>
-        {!showActivities ? (
-          <button type="button" className="btn btn-secondary" onClick={addActivityRow}>
-            + Andere werkzaamheden toevoegen
-          </button>
+        <div>
+          <label className="label">Aantal afgehandelde dossiers</label>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              className="btn btn-secondary h-12 w-12 text-xl"
+              onClick={() => setProductionUnits((value) => Math.max(0, value - 1))}
+            >
+              -
+            </button>
+            <div className="min-w-16 text-center text-3xl font-semibold">{productionUnits}</div>
+            <button
+              type="button"
+              className="btn btn-secondary h-12 w-12 text-xl"
+              onClick={() => setProductionUnits((value) => value + 1)}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="label" htmlFor="production-hours">
+            Uren besteed aan dossierafhandeling
+          </label>
+          <input
+            id="production-hours"
+            className="input max-w-xs"
+            type="number"
+            min="0"
+            step="0.5"
+            value={productionHours}
+            onChange={(event) => setProductionHours(event.target.value)}
+            placeholder="Bijv. 6"
+          />
+        </div>
+      </section>
+
+      <section className="space-y-4 border border-[var(--border)] p-4 md:p-5">
+        <div>
+          <h2 className="ind-section-heading">Overige werkzaamheden</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Voeg per activiteit toe hoeveel uren u heeft besteed, bijvoorbeeld overleg, opleiding of
+            administratief werk.
+          </p>
+        </div>
+
+        {activities.length === 0 ? (
+          <p className="text-sm text-[var(--muted)]">Nog geen andere werkzaamheden toegevoegd.</p>
         ) : (
           <div className="space-y-3">
             {activities.map((activity, index) => (
-              <div key={index} className="grid gap-3 border border-[var(--border)] p-4 md:grid-cols-[1fr_120px_auto]">
-                <select
-                  className="input"
-                  value={activity.categoryId}
-                  onChange={(event) => updateActivity(index, { categoryId: event.target.value })}
-                >
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  className="input"
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={activity.hours}
-                  onChange={(event) => updateActivity(index, { hours: event.target.value })}
-                  placeholder="Uren"
-                />
+              <div
+                key={index}
+                className="grid gap-3 border border-[var(--border)] p-4 md:grid-cols-[1fr_140px_auto]"
+              >
+                <div>
+                  <label className="label md:sr-only" htmlFor={`activity-category-${index}`}>
+                    Activiteit
+                  </label>
+                  <select
+                    id={`activity-category-${index}`}
+                    className="input"
+                    value={activity.categoryId}
+                    onChange={(event) => updateActivity(index, { categoryId: event.target.value })}
+                  >
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label md:sr-only" htmlFor={`activity-hours-${index}`}>
+                    Uren
+                  </label>
+                  <input
+                    id={`activity-hours-${index}`}
+                    className="input"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={activity.hours}
+                    onChange={(event) => updateActivity(index, { hours: event.target.value })}
+                    placeholder="Uren"
+                  />
+                </div>
                 <button type="button" className="btn btn-secondary" onClick={() => removeActivity(index)}>
                   Verwijder
                 </button>
               </div>
             ))}
-            <button type="button" className="btn btn-secondary" onClick={addActivityRow}>
-              + Nog een werkzaamheid
-            </button>
           </div>
         )}
-      </div>
+
+        <button type="button" className="btn btn-secondary" onClick={addActivityRow}>
+          + Werkzaamheid toevoegen
+        </button>
+      </section>
 
       <div>
         <label className="label" htmlFor="comment">

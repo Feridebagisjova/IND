@@ -24,6 +24,7 @@ export default async function RegistrationsPage() {
               <th>Datum</th>
               <th>Medewerker</th>
               <th>Productie</th>
+              <th>Dossieruren</th>
               <th>Werkzaamheden</th>
               <th>Opmerking</th>
             </tr>
@@ -34,6 +35,7 @@ export default async function RegistrationsPage() {
                 <td>{format(registration.date, "dd-MM-yyyy")}</td>
                 <td>{registration.employee.name}</td>
                 <td>{registration.productionUnits}</td>
+                <td>{registration.productionHours > 0 ? `${registration.productionHours}u` : "—"}</td>
                 <td>
                   {registration.activities.length
                     ? registration.activities

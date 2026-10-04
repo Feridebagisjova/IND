@@ -64,6 +64,7 @@ model Registration {
   employee        Employee               @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   date            DateTime
   productionUnits Float
+  productionHours Float    @default(0)
   comment         String?
   activities      RegistrationActivity[]
   createdAt       DateTime               @default(now())

@@ -163,6 +163,7 @@ export async function getEmployeeDetail(employeeId: string, period: Period = "mo
     return {
       date: registration.date,
       production: registration.productionUnits,
+      productionHours: registration.productionHours,
       correctedNorm: metrics.correctedNorm,
       realization: metrics.realization,
       activities: registration.activities,

@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     const employeeId = String(body.employeeId ?? "");
     const pinCode = String(body.pinCode ?? "");
     const productionUnits = Number(body.productionUnits ?? 0);
+    const productionHours = Number(body.productionHours ?? 0);
     const comment = body.comment ? String(body.comment) : null;
     const activities = Array.isArray(body.activities) ? body.activities : [];
 
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
       },
       update: {
         productionUnits,
+        productionHours,
         comment,
         activities: {
           deleteMany: {},
@@ -55,6 +57,7 @@ export async function POST(request: Request) {
         employeeId,
         date: today,
         productionUnits,
+        productionHours,
         comment,
         activities: {
           create: activities.map((activity: { categoryId: string; hours: number }) => ({

@@ -117,6 +117,7 @@ async function main() {
       employeeId: petra.id,
       date: sampleDates[0],
       productionUnits: 4,
+      productionHours: 6,
       activities: { create: [{ categoryId: overleg.id, hours: 1 }] },
     },
   });
@@ -126,6 +127,7 @@ async function main() {
       employeeId: petra.id,
       date: sampleDates[1],
       productionUnits: 2,
+      productionHours: 3,
       comment: "Training",
       activities: {
         create: [
@@ -141,6 +143,7 @@ async function main() {
       employeeId: petra.id,
       date: sampleDates[2],
       productionUnits: 5,
+      productionHours: 7,
     },
   });
 
@@ -149,6 +152,7 @@ async function main() {
       employeeId: petra.id,
       date: sampleDates[3],
       productionUnits: 3,
+      productionHours: 4.5,
       comment: "Complex dossier",
       activities: {
         create: [
@@ -164,6 +168,7 @@ async function main() {
       employeeId: jan.id,
       date: sampleDates[3],
       productionUnits: 6,
+      productionHours: 7.5,
     },
   });
 
@@ -172,6 +177,7 @@ async function main() {
       employeeId: lisa.id,
       date: sampleDates[3],
       productionUnits: 2,
+      productionHours: 3,
       activities: {
         create: [{ categoryId: begeleiding.id, hours: 1.5 }],
       },
