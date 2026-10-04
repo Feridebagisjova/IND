@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  employees Employee[]
+  createdAt DateTime   @default(now())
+}
+
+model NormProfile {
+  id           String     @id @default(cuid())
+  name         String     @unique
+  hoursPerDay  Float
+  targetUnits  Float
+  employees    Employee[]
+  history      NormProfileHistory[]
+  createdAt    DateTime   @default(now())
+}
+
+model NormProfileHistory {
+  id            String      @id @default(cuid())
+  normProfileId String
+  normProfile   NormProfile @relation(fields: [normProfileId], references: [id], onDelete: Cascade)
+  hoursPerDay   Float
+  targetUnits   Float
+  validFrom     DateTime
+  createdAt     DateTime    @default(now())
+}
+
+model ActivityCategory {
+  id                     String               @id @default(cuid())
+  name                   String               @unique
+  reducesProductiveTime  Boolean              @default(true)
+  active                 Boolean              @default(true)
+  registrationActivities RegistrationActivity[]
+  createdAt              DateTime             @default(now())
+}
+
+model Employee {
+  id            String         @id @default(cuid())
+  name          String
+  email         String?        @unique
+  pinCode       String
+  teamId        String?
+  team          Team?          @relation(fields: [teamId], references: [id])
+  normProfileId String
+  normProfile   NormProfile    @relation(fields: [normProfileId], references: [id])
+  hoursPerDay   Float
+  active        Boolean        @default(true)
+  registrations Registration[]
+  createdAt     DateTime       @default(now())
+}
+
+model Registration {
+  id              String                 @id @default(cuid())
+  employeeId      String
+  employee        Employee               @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date            DateTime
+  productionUnits Float
+  comment         String?
+  activities      RegistrationActivity[]
+  createdAt       DateTime               @default(now())
+
+  @@unique([employeeId, date])
+}
+
+model RegistrationActivity {
+  id             String           @id @default(cuid())
+  registrationId String
+  registration   Registration     @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  categoryId     String
+  category       ActivityCategory @relation(fields: [categoryId], references: [id])
+  hours          Float
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+}
+
+model AppSettings {
+  id              String @id @default("default")
+  thresholdGreen  Float  @default(100)
+  thresholdOrange Float  @default(90)
+}
