@@ -10,6 +10,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "plesk:deploy": "npm install && npm run db:push && npm run db:seed && npm run build",
     "postinstall": "prisma generate"
   },
   "dependencies": {
