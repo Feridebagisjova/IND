@@ -76,3 +76,37 @@ export function IconChevron({ className }: IconProps) {
     </svg>
   );
 }
+
+export function IconFacebook({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M14 8.5h2.5l-.5 3H14v9h-3.5v-9H9v-3h1.5V7.2c0-1.2.3-2.1 1-2.7.7-.6 1.7-.9 3.1-.9H16v3h-1.4c-.8 0-1.3.2-1.5.5-.2.4-.3 1-.3 1.7v.9Z" />
+    </svg>
+  );
+}
+
+export function IconInstagram({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4.5" y="4.5" width="15" height="15" rx="4" stroke="currentColor" strokeWidth="2" />
+      <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="2" />
+      <circle cx="17" cy="7" r="1.2" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function IconLinkedIn({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M6.5 9.5V18H4V9.5h2.5ZM5.25 8.3a1.45 1.45 0 1 1 0-2.9 1.45 1.45 0 0 1 0 2.9ZM10 9.5h2.4v1.2h.03c.34-.64 1.16-1.32 2.39-1.32 2.55 0 3.02 1.68 3.02 3.86V18H15V14.9c0-.73-.01-1.67-1.02-1.67-1.02 0-1.18.8-1.18 1.62V18H10V9.5Z" />
+    </svg>
+  );
+}
+
+export function IconX({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="m6.5 6.5 4.1 5.3-4.3 5.7H8l2.7-3.5 2.2 3.5h3.7l-4.5-5.8 3.9-5.2h-2.8l-2.4 3.1-1.9-3.1H6.5Zm1.6 1.2h1.7l7.2 10.6h-1.7L8.1 7.7Z" />
+    </svg>
+  );
+}

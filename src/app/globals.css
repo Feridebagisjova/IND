@@ -381,8 +381,33 @@ button {
 }
 
 .ind-footer {
-  background: var(--ind-purple-light);
-  border-top: 1px solid var(--border);
+  background: #f8f4ff;
+  border-top: 1px solid rgba(66, 20, 95, 0.08);
+  color: var(--primary);
+}
+
+.ind-footer-inner {
+  padding: 2.5rem 0 2rem;
+}
+
+.ind-footer-top {
+  display: grid;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .ind-footer-top {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ind-footer-top {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2.5rem;
+  }
 }
 
 .ind-footer-links {
@@ -390,11 +415,92 @@ button {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
-.ind-footer-links a:hover {
+.ind-footer-link {
+  color: var(--primary);
+  font-size: 1rem;
+  font-style: italic;
+  text-decoration: none;
+}
+
+.ind-footer-link:hover {
   text-decoration: underline;
+}
+
+.ind-footer-social {
+  padding-top: 0.25rem;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .ind-footer-social {
+    grid-column: 1 / -1;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(66, 20, 95, 0.12);
+  }
+}
+
+.ind-footer-social-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.ind-footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.ind-footer-social-link:hover {
+  opacity: 0.8;
+}
+
+.ind-footer-social-icon {
+  display: block;
+}
+
+.ind-footer-language {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(66, 20, 95, 0.12);
+}
+
+.ind-footer-language-link {
+  color: var(--primary);
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.ind-footer-language-link:hover {
+  text-decoration: underline;
+}
+
+.ind-footer-language-sep {
+  color: rgba(66, 20, 95, 0.45);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .ind-page-title {
@@ -408,6 +514,24 @@ button {
   color: var(--primary);
   font-size: 1.25rem;
   font-weight: 700;
+}
+
+.ind-help-box {
+  border: 1px solid rgba(66, 20, 95, 0.12);
+  background: white;
+  padding: 1rem 1.1rem;
+}
+
+.ind-form-submit {
+  border: 2px solid var(--primary);
+  background: white;
+  padding: 1.25rem 1.5rem;
+}
+
+.ind-empty-state {
+  border: 1px dashed rgba(66, 20, 95, 0.25);
+  background: white;
+  padding: 1rem 1.1rem;
 }
 
 .card {

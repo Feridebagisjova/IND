@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getEmployeeSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { startOfDay } from "@/lib/metrics";
+import {
+  isFutureDate,
+  parseInputDate,
+  toInputDateValue,
+} from "@/lib/metrics";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 
@@ -37,6 +41,67 @@ function parseActivities(raw: unknown): ActivityInput[] {
     .filter((item) => item.categoryId && item.hours > 0);
 }
 
+function parseRegistrationDate(raw: unknown) {
+  const date = parseInputDate(String(raw ?? ""));
+  if (!date) {
+    return { error: "Ongeldige datum" as const };
+  }
+
+  if (isFutureDate(date)) {
+    return { error: "U kunt geen registratie voor een toekomstige datum opslaan" as const };
+  }
+
+  return { date };
+}
+
+export async function GET(request: Request) {
+  try {
+    const session = await getEmployeeSession();
+    if (!session) {
+      return NextResponse.json({ error: "U bent niet ingelogd" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const parsed = parseRegistrationDate(searchParams.get("date") ?? toInputDateValue(new Date()));
+    if ("error" in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+
+    const registration = await prisma.registration.findUnique({
+      where: {
+        employeeId_date: {
+          employeeId: session.employeeId,
+          date: parsed.date,
+        },
+      },
+      include: {
+        dossiers: { orderBy: { title: "asc" } },
+        activities: { orderBy: { categoryId: "asc" } },
+      },
+    });
+
+    return NextResponse.json({
+      date: toInputDateValue(parsed.date),
+      exists: Boolean(registration),
+      registration: registration
+        ? {
+            comment: registration.comment ?? "",
+            dossiers: registration.dossiers.map((dossier) => ({
+              title: dossier.title,
+              hours: dossier.hours,
+            })),
+            activities: registration.activities.map((activity) => ({
+              categoryId: activity.categoryId,
+              hours: activity.hours,
+            })),
+          }
+        : null,
+    });
+  } catch {
+    return NextResponse.json({ error: "Registratie ophalen mislukt" }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getEmployeeSession();
@@ -45,6 +110,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const parsed = parseRegistrationDate(body.date ?? toInputDateValue(new Date()));
+    if ("error" in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+
     const dossiers = parseDossiers(body.dossiers);
     const activities = parseActivities(body.activities);
     const comment = body.comment ? String(body.comment) : null;
@@ -67,13 +137,13 @@ export async function POST(request: Request) {
     const productionUnits = dossiers.length;
     const productionHours = dossiers.reduce((sum, dossier) => sum + dossier.hours, 0);
     const employeeId = employee.id;
-    const today = startOfDay(new Date());
+    const registrationDate = parsed.date;
 
     await prisma.registration.upsert({
       where: {
         employeeId_date: {
           employeeId,
-          date: today,
+          date: registrationDate,
         },
       },
       update: {
@@ -97,7 +167,7 @@ export async function POST(request: Request) {
       },
       create: {
         employeeId,
-        date: today,
+        date: registrationDate,
         productionUnits,
         productionHours,
         comment,
@@ -117,7 +187,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      message: `Bedankt. Je registratie voor ${format(today, "d MMMM", { locale: nl })} is verwerkt.`,
+      message: `Bedankt. Je registratie voor ${format(registrationDate, "d MMMM yyyy", { locale: nl })} is verwerkt.`,
+      date: toInputDateValue(registrationDate),
     });
   } catch {
     return NextResponse.json({ error: "Er ging iets mis bij het opslaan" }, { status: 500 });

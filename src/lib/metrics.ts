@@ -66,6 +66,37 @@ export function startOfDay(date: Date) {
   return copy;
 }
 
+export function toInputDateValue(date: Date) {
+  const normalized = startOfDay(date);
+  const year = normalized.getFullYear();
+  const month = String(normalized.getMonth() + 1).padStart(2, "0");
+  const day = String(normalized.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function parseInputDate(value: string | null | undefined) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = startOfDay(new Date(year, month - 1, day));
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+export function isFutureDate(date: Date) {
+  return startOfDay(date).getTime() > startOfDay(new Date()).getTime();
+}
+
 export function endOfDay(date: Date) {
   const copy = new Date(date);
   copy.setHours(23, 59, 59, 999);
