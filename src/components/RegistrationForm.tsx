@@ -101,8 +101,8 @@ export function RegistrationForm({
 
   if (status === "success") {
     return (
-      <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-6 text-green-900">
-        <p className="text-lg font-semibold">✅ Registratie opgeslagen</p>
+      <div className="ind-success-box">
+        <p className="text-lg font-semibold">Registratie opgeslagen</p>
         <p className="mt-2">{message}</p>
         <button
           type="button"
@@ -160,8 +160,8 @@ export function RegistrationForm({
       </div>
 
       {selectedEmployee && (
-        <div className="rounded-2xl bg-teal-50 px-4 py-3 text-sm text-teal-900">
-          <strong>{selectedEmployee.name}</strong>
+        <div className="ind-info-box text-sm">
+          Geselecteerd: <strong>{selectedEmployee.name}</strong>
         </div>
       )}
 
@@ -195,7 +195,7 @@ export function RegistrationForm({
         ) : (
           <div className="space-y-3">
             {activities.map((activity, index) => (
-              <div key={index} className="grid gap-3 rounded-2xl border border-[var(--border)] p-4 md:grid-cols-[1fr_120px_auto]">
+              <div key={index} className="grid gap-3 border border-[var(--border)] p-4 md:grid-cols-[1fr_120px_auto]">
                 <select
                   className="input"
                   value={activity.categoryId}
@@ -241,9 +241,7 @@ export function RegistrationForm({
         />
       </div>
 
-      {status === "error" && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">{message}</div>
-      )}
+      {status === "error" && <div className="ind-error-box">{message}</div>}
 
       <button type="submit" className="btn btn-primary w-full text-lg" disabled={status === "loading"}>
         {status === "loading" ? "Opslaan..." : "Registratie opslaan"}

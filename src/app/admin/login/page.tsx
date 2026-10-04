@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { IndFooter } from "@/components/IndFooter";
+import { IndHeader } from "@/components/IndHeader";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -34,45 +36,50 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-6">
-      <div className="card w-full max-w-md p-8">
-        <Link href="/" className="text-sm text-[var(--muted)]">
-          ← Terug naar registratie
-        </Link>
-        <h1 className="mt-4 text-2xl font-semibold">Admin login</h1>
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="label" htmlFor="email">
-              E-mailadres
-            </label>
-            <input
-              id="email"
-              className="input"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="label" htmlFor="password">
-              Wachtwoord
-            </label>
-            <input
-              id="password"
-              className="input"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </div>
-          {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
-          <button type="submit" className="btn btn-primary w-full" disabled={loading}>
-            {loading ? "Bezig..." : "Inloggen"}
-          </button>
-        </form>
-      </div>
-    </main>
+    <div className="flex min-h-screen flex-col bg-white">
+      <IndHeader adminHref="/admin/login" adminLabel="Inloggen" />
+      <main id="main-content" className="flex flex-1 items-center justify-center px-6 py-10">
+        <div className="card w-full max-w-md p-8">
+          <Link href="/" className="text-sm text-[var(--muted)] hover:underline">
+            ← Terug naar productie registratie
+          </Link>
+          <h1 className="ind-page-title mt-4">Admin login</h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">Log in om het admin portaal te openen.</p>
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="label" htmlFor="email">
+                E-mailadres
+              </label>
+              <input
+                id="email"
+                className="input"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="password">
+                Wachtwoord
+              </label>
+              <input
+                id="password"
+                className="input"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </div>
+            {error && <div className="ind-error-box text-sm">{error}</div>}
+            <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+              {loading ? "Bezig..." : "Inloggen"}
+            </button>
+          </form>
+        </div>
+      </main>
+      <IndFooter />
+    </div>
   );
 }

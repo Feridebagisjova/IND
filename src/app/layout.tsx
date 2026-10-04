@@ -1,21 +1,24 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const sourceSans = Source_Sans_3({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
   title: "IND Productie Portaal",
   description: "Dagelijkse productieregistratie voor medewerkers en admin-analyse",
+  icons: {
+    icon: "/ind-logo.png",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="nl">
-      <body className={`${inter.variable} antialiased`}>{children}</body>
+      <body className={`${sourceSans.variable} antialiased`}>{children}</body>
     </html>
   );
 }

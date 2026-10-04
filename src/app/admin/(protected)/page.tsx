@@ -21,7 +21,7 @@ export default async function AdminDashboardPage({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold">Productie Dashboard</h2>
+        <h2 className="ind-page-title">Productie Dashboard</h2>
         <p className="muted mt-1">Analyseer normen, gecorrigeerde normen en realisatie.</p>
       </div>
 

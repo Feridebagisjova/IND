@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { IndShell } from "@/components/IndShell";
 import { RegistrationForm } from "@/components/RegistrationForm";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
@@ -21,33 +21,18 @@ export default async function HomePage() {
   const todayLabel = format(today, "d MMMM yyyy", { locale: nl });
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]">
-      <div className="mx-auto max-w-3xl px-6 py-8">
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
-              productie.ind.nl
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold">Dagelijkse productie registreren</h1>
-            <p className="mt-3 max-w-xl text-[var(--muted)]">
-              Registreer hieronder je werkzaamheden van vandaag.
-            </p>
+    <IndShell
+      bannerTitle="Dagelijkse productie registreren"
+      bannerSubtitle="Registreer hier uw werkzaamheden van vandaag."
+    >
+      <section className="ind-content-section">
+        <div className="ind-container max-w-3xl">
+          <div className="card p-6 md:p-8">
+            <div className="ind-info-box mb-6 text-sm">Vandaag — {todayLabel}</div>
+            <RegistrationForm employees={employees} categories={categories} today={today.toISOString()} />
           </div>
-          <Link
-            href="/admin/login"
-            className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium shadow-sm"
-          >
-            🔒 Admin login
-          </Link>
         </div>
-
-        <div className="card p-6 md:p-8">
-          <div className="mb-6 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            Vandaag — {todayLabel}
-          </div>
-          <RegistrationForm employees={employees} categories={categories} today={today.toISOString()} />
-        </div>
-      </div>
-    </main>
+      </section>
+    </IndShell>
   );
 }

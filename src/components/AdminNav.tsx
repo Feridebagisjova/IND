@@ -33,30 +33,28 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <header className="border-b border-[var(--border)] bg-white">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <nav className="ind-admin-nav" aria-label="Admin navigatie">
+      <div className="ind-container flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-sm font-semibold text-[var(--primary)]">IND Productie Portaal</p>
-          <h1 className="text-xl font-semibold">Admin</h1>
+          <p className="ind-section-heading">Admin portaal</p>
+          <p className="text-sm text-[var(--muted)]">Productie registratie beheer</p>
         </div>
-        <nav className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           {links.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-full px-3 py-1.5 text-sm ${
-                  active ? "bg-[var(--primary)] text-white" : "bg-slate-100 text-slate-700"
-                }`}
+                className={`ind-admin-nav-link ${active ? "ind-admin-nav-link-active" : ""}`}
               >
                 {link.label}
               </Link>
             );
           })}
-        </nav>
+        </div>
         <LogoutButton />
       </div>
-    </header>
+    </nav>
   );
 }
