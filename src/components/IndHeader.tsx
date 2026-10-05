@@ -3,7 +3,14 @@ import Link from "next/link";
 import { IconUser } from "./IndIcons";
 import { LogoutButton } from "./LogoutButton";
 
+type NavLink = {
+  href: string;
+  label: string;
+  external?: boolean;
+};
+
 type IndHeaderProps = {
+  employeeLoggedIn?: boolean;
   showAdminLink?: boolean;
   loginHref?: string;
   loginLabel?: string;
@@ -11,21 +18,28 @@ type IndHeaderProps = {
   employeeName?: string;
 };
 
-const navLinks = [
+const publicNavLinks: NavLink[] = [
+  { href: "/", label: "Home" },
+  { href: "https://ind.nl/nl/contact", label: "Service & Contact", external: true },
+];
+
+const employeeNavLinks: NavLink[] = [
   { href: "/", label: "Home" },
   { href: "/registratie", label: "Productie registratie" },
   { href: "/registratie/overzicht", label: "Mijn registraties" },
-  { href: "/admin/login", label: "Admin portaal" },
   { href: "https://ind.nl/nl/contact", label: "Service & Contact", external: true },
 ];
 
 export function IndHeader({
+  employeeLoggedIn = false,
   showAdminLink = true,
   loginHref = "/login",
   loginLabel = "Inloggen",
   showLogout = false,
   employeeName,
 }: IndHeaderProps) {
+  const navLinks = employeeLoggedIn ? employeeNavLinks : publicNavLinks;
+
   return (
     <header className="ind-header">
       <a href="#main-content" className="ind-skip-link">

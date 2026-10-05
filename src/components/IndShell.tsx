@@ -3,6 +3,8 @@ import { IndFooter } from "./IndFooter";
 import { IndHeader } from "./IndHeader";
 import { IndHero } from "./IndHero";
 import { IndQuickLinks } from "./IndQuickLinks";
+import { getEmployeeSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 type IndShellProps = {
   children?: ReactNode;
@@ -17,7 +19,7 @@ type IndShellProps = {
   heroActions?: ReactNode;
 };
 
-export function IndShell({
+export async function IndShell({
   children,
   showAdminLink = true,
   loginHref = "/login",
@@ -29,14 +31,30 @@ export function IndShell({
   showQuickLinks = true,
   heroActions,
 }: IndShellProps) {
+  const session = await getEmployeeSession();
+  const employeeLoggedIn = !!session;
+
+  let resolvedEmployeeName = employeeName;
+  if (employeeLoggedIn && !resolvedEmployeeName) {
+    const employee = await prisma.employee.findFirst({
+      where: { id: session.employeeId, active: true },
+      select: { name: true },
+    });
+    resolvedEmployeeName = employee?.name;
+  }
+
+  const resolvedShowLogout = showLogout || employeeLoggedIn;
+  const resolvedShowAdminLink = showAdminLink && !employeeLoggedIn;
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <IndHeader
-        showAdminLink={showAdminLink}
+        employeeLoggedIn={employeeLoggedIn}
+        showAdminLink={resolvedShowAdminLink}
         loginHref={loginHref}
         loginLabel={loginLabel}
-        showLogout={showLogout}
-        employeeName={employeeName}
+        showLogout={resolvedShowLogout}
+        employeeName={resolvedEmployeeName}
       />
       {bannerTitle && (
         <>
