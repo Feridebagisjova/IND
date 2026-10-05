@@ -4,8 +4,8 @@ import { IndShell } from "@/components/IndShell";
 export default function HomePage() {
   return (
     <IndShell
-      bannerTitle="Hoe kunnen we u helpen?"
-      bannerSubtitle="Registreer uw productie, dossieruren en overige werkzaamheden van vandaag."
+      bannerTitle="Productie van vandaag registreren"
+      bannerSubtitle="Log in om uw dossieruren en overige werkzaamheden vast te leggen."
       showQuickLinks={false}
       heroActions={
         <>
